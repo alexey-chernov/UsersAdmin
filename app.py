@@ -2,6 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from models import db, User, Transaction
+import pandas as pd
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -109,6 +113,46 @@ def statistics_form():
     total_transactions = db.session.query(db.func.count(Transaction.id)).scalar()
     total_amount = db.session.query(db.func.sum(Transaction.amount)).scalar()
     return render_template('statistics.html', total_transactions=total_transactions, total_amount=total_amount)
+
+@app.route('/statistics', methods=['POST'])
+def statistics():
+    start_date = request.form.get('start_date') + ' 00:00:00'
+    end_date = request.form.get('end_date') + ' 23:59:59'
+
+    query = Transaction.query
+
+    if start_date:
+        query = query.filter(Transaction.created_at >= start_date)
+    if end_date:
+        query = query.filter(Transaction.created_at <= end_date)
+    
+    transactions = query.all()
+    count_transactions = query.all()
+
+    total_amount = sum(t.amount for t in transactions)
+
+    # Перетворюємо список транзакцій у DataFrame
+    df = pd.DataFrame([(t.created_at, t.amount) for t in transactions], columns=['Date', 'Amount'])
+    
+    # Сортуємо за датою
+    df['Date'] = pd.to_datetime(df['Date'])
+    df = df.sort_values(by='Date')
+
+    # Створюємо графік
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['Date'], df['Amount'], marker='o')
+    plt.title('Транзакції за датами')
+    plt.xlabel('Дата')
+    plt.ylabel('Сума транзакції')
+
+    # Збереження графіка в пам'ять для відображення
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode('utf8')
+    plt.close()
+        
+    return render_template('getstatistics.html', transactions=count_transactions, total_amount=total_amount, graph_url=graph_url)
 
 
 if __name__ == '__main__':
