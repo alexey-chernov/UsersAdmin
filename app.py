@@ -127,7 +127,7 @@ def statistics():
         query = query.filter(Transaction.created_at <= end_date)
     
     transactions = query.all()
-    count_transactions = query.all()
+    count_transactions = query.all()    # Має рахувати кількість транзакцій, а виводить самі об'єкти
 
     total_amount = sum(t.amount for t in transactions)
 
