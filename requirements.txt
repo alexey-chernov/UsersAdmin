@@ -1,0 +1,6 @@
+flask 
+sqlalchemy 
+flask-admin 
+flask-sqlalchemy
+flask-migrate
+psycopg2

@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block content %}
+<h2>Отримати користувача</h2>
+<form action="/get_user" method="GET">
+  <label for="user_id">ID користувача:</label>
+  <input type="number" id="user_id" name="user_id" required />
+  <button type="submit">Отримати інформацію</button>
+</form>
+
+{% if user %}
+<h3>Інформація про користувача</h3>
+<p>ID: {{ user.id }}</p>
+<p>Ім'я: {{ user.username }}</p>
+
+<h4>Транзакції:</h4>
+<ul>
+  {% for transaction in transactions %}
+  <li>
+    {{ transaction.transaction_type }}: {{ transaction.amount }} ({{
+    transaction.created_at.strftime('%d-%m-%Y %H:%M:%S') }})
+  </li>
+  {% endfor %}
+</ul>
+{% endif %} {% endblock %}
